@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guilda Ragnarok - Sistema Completo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(180deg, #cc0000 0%, #cc0000 50%, #ffffff 50%, #ffffff 100%);
+            background-attachment: fixed;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .pokedex {
+            background-color: #ff0000;
+            border: 10px solid #8b0000;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .screen {
+            background-color: #2b2b2b;
+            border: 8px solid #b3b3b3;
+            border-radius: 10px;
+            padding: 20px;
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            color: #ffcb05;
+            text-shadow: 2px 2px #3b4cca;
+            margin-bottom: 25px;
+        }
+        .header h1 { font-size: 1.2rem; line-height: 1.5; margin-bottom: 5px; }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background-color: #3b4cca;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            padding: 12px 15px;
+            border: 3px solid #1a1a1a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            flex: 1;
+            min-width: 120px;
+        }
+        .tab-btn.active {
+            background-color: #ffcb05;
+            color: #3b4cca;
+            border-color: #c7a000;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .grid-contrib {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .grid-header {
+            font-weight: bold;
+            color: #ffcb05;
+            text-align: center;
+            border-bottom: 2px solid #ffcb05;
+            padding-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input::placeholder { color: #999; }
+        .player-label {
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffcb05;
+            font-weight: bold;
+            text-align: left;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .btn {
+            flex: 1;
+            padding: 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            border: 3px solid #1a1a1a;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .btn-calc { background-color: #4caf50; color: white; }
+        .btn-clear { background-color: #f44336; color: white; }
+        .btn:active { transform: scale(0.95); }
+        
+        .results-box {
+            margin-top: 20px;
+            background-color: #98cb98;
+            border: 4px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            color: #1a1a1a;
+            font-weight: bold;
+            display: none;
+        }
+        .result-line {
+            margin: 10px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #666;
+        }
+        .result-line:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
+        .pass { color: #004d00; }
+        .fail { color: #cc0000; }
+        .highlight { color: #0000ff; font-size: 1.1rem;}
+
+        @media (max-width: 450px) {
+            .grid { grid-template-columns: 1fr; gap: 5px; }
+            .grid-header { display: none; }
+            .player-label { text-align: left; margin-top: 10px; color: #ffcb05; }
+        }
+    </style>
+</head>
+<body onload="limparDados()">
+
+<div class="pokedex">
+    <div class="screen">
+        <div class="header">
+            <h1>🛡️ GUILDA RAGNAROK 🛡️</h1>
+            <p style="font-size: 0.7rem; color: #fff; text-shadow: none;">Sistema Central</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="btn-3x3" onclick="setMode('3x3')">MODO 3x3</button>
+            <button class="tab-btn" id="btn-2x2" onclick="setMode('2x2')">MODO 2x2</button>
+            <button class="tab-btn" id="btn-contrib" onclick="setMode('contrib')">CONTRIB. DA GUILDA</button>
+        </div>
+
+        <!-- SEÇÃO DE HUNT (PKA) -->
+        <div id="hunt-section">
+            <div class="grid">
+                <div class="grid-header">Time</div>
+                <div class="grid-header">Nome Pokémon</div>
+                <div class="grid-header">Dano</div>
+                
+                <div class="player-label">Pokémon 1</div>
+                <div><input type="text" id="nome1" placeholder="Nome"></div>
+                <div><input type="number" id="dano1" placeholder="Dano"></div>
+
+                <div class="player-label">Pokémon 2</div>
+                <div><input type="text" id="nome2" placeholder="Nome"></div>
+                <div><input type="number" id="dano2" placeholder="Dano"></div>
+
+                <div class="player-label" id="label3">Pokémon 3</div>
+                <div id="div-nome3"><input type="text" id="nome3" placeholder="Nome"></div>
+                <div id="div-dano3"><input type="number" id="dano3" placeholder="Dano"></div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-clear" onclick="limparDados()">ZERAR TUDO</button>
+                <button class="btn btn-calc" onclick="calcularHunt()">CALCULAR HUNT</button>
+            </div>
+        </div>
+
+        <!-- SEÇÃO DE CONTRIBUIÇÃO -->
+        <div id="contrib-section" style="display: none;">
+            <div style="font-size: 0.8rem; text-align: center; margin-bottom: 15px; color: #ccc;">
+                Meta da Guilda: 5400 <br> (Cada Daily = 300)
+            </div>
+            <div class="grid-contrib">
+                <div class="input-group">
+                    <label>👤 Nick (Opcional):</label>
+                    <input type="text" id="nick" placeholder="Seu Nick no jogo">
+                </div>
+                <div class="input-group">
+                    <label>💰 Donate em R$ (Opcional):</label>
+                    <input type="number" id="donate" placeholder="Ex: 1000" value="0">
+                </div>
+                <div class="input-group">
+                    <label>📜 Dailys Feitas:</label>
+                    <input type="number" id="dailys" placeholder="Quantidade de Dailys" value="0">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-clear" onclick="limparDados()">ZERAR TUDO</button>
+                <button class="btn btn-calc" onclick="calcularContrib()">SIMULAR META</button>
+            </div>
+        </div>
+
+        <!-- RESULTADOS (Comum para as duas seções) -->
+        <div id="results" class="results-box"></div>
+    </div>
+</div>
+
+<script>
+    let currentMode = '3x3';
+
+    function setMode(mode) {
+        currentMode = mode;
+        
+        // Atualiza os botões das abas
+        document.getElementById('btn-3x3').classList.toggle('active', mode === '3x3');
+        document.getElementById('btn-2x2').classList.toggle('active', mode === '2x2');
+        document.getElementById('btn-contrib').classList.toggle('active', mode === 'contrib');
+        
+        // Exibe a seção correta
+        const isHunt = mode === '3x3' || mode === '2x2';
+        document.getElementById('hunt-section').style.display = isHunt ? 'block' : 'none';
+        document.getElementById('contrib-section').style.display = mode === 'contrib' ? 'block' : 'none';
+        
+        // Lógica visual do 3º player se for hunt
+        if (isHunt) {
+            const is3x3 = mode === '3x3';
+            document.getElementById('label3').style.display = is3x3 ? 'block' : 'none';
+            document.getElementById('div-nome3').style.display = is3x3 ? 'block' : 'none';
+            document.getElementById('div-dano3').style.display = is3x3 ? 'block' : 'none';
+        }
+
+        // Esconde os resultados e limpa dados ao trocar de aba (opcional)
+        document.getElementById('results').style.display = 'none';
+    }
+
+    function limparDados() {
+        // Limpa Hunt
+        document.getElementById('nome1').value = '';
+        document.getElementById('dano1').value = '';
+        document.getElementById('nome2').value = '';
+        document.getElementById('dano2').value = '';
+        document.getElementById('nome3').value = '';
+        document.getElementById('dano3').value = '';
+        
+        // Limpa Contribuição
+        document.getElementById('nick').value = '';
+        document.getElementById('donate').value = '0';
+        document.getElementById('dailys').value = '0';
+
+        // Esconde resultado
+        document.getElementById('results').style.display = 'none';
+    }
+
+    function calcularHunt() {
+        const meta = 750;
+        const d1 = parseFloat(document.getElementById('dano1').value) || 0;
+        const d2 = parseFloat(document.getElementById('dano2').value) || 0;
+        const d3 = currentMode === '3x3' ? (parseFloat(document.getElementById('dano3').value) || 0) : 0;
+
+        const total = d1 + d2 + d3;
+        const prey = total * 1.30;
+        const hoenn = total * 1.05;
+
+        const res = document.getElementById('results');
+        res.style.display = 'block';
+
+        let html = `<h3 style="margin-top: 0;">Dano Total Base: ${total.toFixed(1)}</h3>`;
+
+        if (total >= meta) {
+            html += `<div class="result-line pass">✅ Pode caçar normal!</div>`;
+        } else {
+            html += `<div class="result-line fail">❌ Faltou ${(meta - total).toFixed(1)} de dano</div>`;
+        }
+
+        if (prey >= meta) {
+            html += `<div class="result-line pass">✅ Com 30% Prey: Aprovado! (Total: ${prey.toFixed(1)})</div>`;
+        } else {
+            html += `<div class="result-line fail">❌ Com 30% Prey: Faltou ${(meta - prey).toFixed(1)}</div>`;
+        }
+
+        if (hoenn >= meta) {
+            html += `<div class="result-line pass">✅ Com 5% Talento: Aprovado! (Total: ${hoenn.toFixed(1)})</div>`;
+        } else {
+            html += `<div class="result-line fail">❌ Com 5% Talento: Faltou ${(meta - hoenn).toFixed(1)}</div>`;
+        }
+
+        res.innerHTML = html;
+    }
+
+    function calcularContrib() {
+        const meta = 5400;
+        const donate = parseFloat(document.getElementById('donate').value) || 0;
+        const dailys = parseFloat(document.getElementById('dailys').value) || 0;
+        
+        // Lógica tirada da planilha: 1 daily = 300
+        const totalDaily = dailys * 300;
+        const totalFinal = donate + totalDaily;
+        
+        const res = document.getElementById('results');
+        res.style.display = 'block';
+
+        let html = `<h3 style="margin-top: 0; text-align: center;">Resumo da Contribuição</h3>`;
+        html += `<div class="result-line">📜 Valor por Dailys: <span class="highlight">${totalDaily}</span></div>`;
+        html += `<div class="result-line">💰 Valor Donate: <span class="highlight">${donate}</span></div>`;
+        html += `<div class="result-line" style="border-bottom: 3px solid #1a1a1a;">🏆 Total Acumulado: <span class="highlight">${totalFinal}</span></div>`;
+
+        if (totalFinal >= meta) {
+            html += `<div class="result-line pass" style="text-align: center; font-size: 1.2rem;">OK ✅<br><span style="font-size:0.8rem">Meta batida!</span></div>`;
+        } else {
+            const devendo = meta - totalFinal;
+            html += `<div class="result-line fail" style="text-align: center; font-size: 1.1rem;">⚠️ Devendo: R$ -${devendo.toFixed(2)}</div>`;
+        }
+
+        res.innerHTML = html;
+    }
+</script>
+</body>
+</html>
