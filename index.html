@@ -360,8 +360,8 @@
             }
 
             html += `<h3 style="text-align: center; margin-top: 0;">Times Balanceados (3x3)</h3>`;
-            html += renderTeam(bestTeam1, "Trio 1 (Líder: " + lurers[0].nome + ")");
-            html += renderTeam(bestTeam2, "Trio 2 (Líder: " + lurers[1].nome + ")");
+            html += renderTeam(bestTeam1, "Trio 1 (Líder: " + lurers[0].nome + ")", '3x3');
+            html += renderTeam(bestTeam2, "Trio 2 (Líder: " + lurers[1].nome + ")", '3x3');
 
         } else if (currentMode === '2x2') {
             if (lurerCount !== 3) {
@@ -395,16 +395,16 @@
             }
 
             html += `<h3 style="text-align: center; margin-top: 0;">Times Balanceados (2x2)</h3>`;
-            html += renderTeam(bestTeams[0], "Dupla 1 (Líder: " + lurers[0].nome + ")");
-            html += renderTeam(bestTeams[1], "Dupla 2 (Líder: " + lurers[1].nome + ")");
-            html += renderTeam(bestTeams[2], "Dupla 3 (Líder: " + lurers[2].nome + ")");
+            html += renderTeam(bestTeams[0], "Dupla 1 (Líder: " + lurers[0].nome + ")", '2x2');
+            html += renderTeam(bestTeams[1], "Dupla 2 (Líder: " + lurers[1].nome + ")", '2x2');
+            html += renderTeam(bestTeams[2], "Dupla 3 (Líder: " + lurers[2].nome + ")", '2x2');
         }
 
         res.innerHTML = html;
         res.style.display = 'block';
     }
 
-    function renderTeam(team, title) {
+    function renderTeam(team, title, mode) {
         let dmgBase = team.reduce((sum, p) => sum + p.dano, 0);
         let dmgPrey = dmgBase * 1.30;
         const meta = 750;
@@ -420,12 +420,20 @@
         html += `<strong>Dano Total (Base):</strong> ${dmgBase.toFixed(1)} <br>`;
         html += `<strong>Dano Total (+30% Prey):</strong> ${dmgPrey.toFixed(1)} <br><br>`;
         
-        if (dmgBase >= meta) {
-            html += `<span class="pass">✅ Este time pode caçar sem Prey!</span>`;
-        } else if (dmgPrey >= meta) {
-            html += `<span class="pass">✅ Este time pode caçar com Prey!</span>`;
-        } else {
-            html += `<span class="fail">❌ Time muito fraco. Faltou ${(meta - dmgPrey).toFixed(1)} de dano (Mesmo com Prey).</span>`;
+        if (mode === '3x3') {
+            if (dmgBase >= meta) {
+                html += `<span class="pass">✅ Este time pode caçar sem Prey!</span>`;
+            } else if (dmgPrey >= meta) {
+                html += `<span class="pass">✅ Este time pode caçar com Prey!</span>`;
+            } else {
+                html += `<span class="fail">❌ Time muito fraco. Faltou ${(meta - dmgPrey).toFixed(1)} de dano (Mesmo com Prey).</span>`;
+            }
+        } else if (mode === '2x2') {
+             if (dmgBase >= meta || dmgPrey >= meta) {
+                html += `<span class="pass">🎉 Parabéns você tem dano para caçar 2x2!</span>`;
+             } else {
+                html += `<span class="fail">❌ Time muito fraco. Faltou ${(meta - dmgPrey).toFixed(1)} de dano (Mesmo com Prey).</span>`;
+             }
         }
         
         html += `</div></div>`;
