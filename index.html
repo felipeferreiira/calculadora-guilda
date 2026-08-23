@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guilda Ragnarok - Sistema Completo</title>
+    <title>Guilda Ragnarok - Sistema Balanceador</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -23,7 +23,7 @@
             border: 10px solid #8b0000;
             border-radius: 20px;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.6);
             padding: 20px;
             box-sizing: border-box;
@@ -69,9 +69,10 @@
             color: #3b4cca;
             border-color: #c7a000;
         }
-        .grid {
+        
+        .grid-hunt {
             display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-columns: auto 2.5fr 1fr auto;
             gap: 10px;
             margin-bottom: 15px;
             align-items: center;
@@ -88,9 +89,9 @@
             text-align: center;
             border-bottom: 2px solid #ffcb05;
             padding-bottom: 5px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
-        input {
+        input[type="text"], input[type="number"] {
             width: 100%;
             padding: 10px;
             border: 2px solid #555;
@@ -100,14 +101,20 @@
             font-weight: bold;
             text-align: center;
             box-sizing: border-box;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         input::placeholder { color: #999; }
+        .lurer-check {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            accent-color: #ffcb05;
+        }
         .player-label {
             text-align: center;
             font-weight: bold;
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
         .input-group label {
             display: block;
@@ -150,14 +157,23 @@
             border-bottom: 2px dashed #666;
         }
         .result-line:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
-        .pass { color: #004d00; }
-        .fail { color: #cc0000; }
+        .pass { color: #006600; font-weight: bold; }
+        .fail { color: #cc0000; font-weight: bold; }
         .highlight { color: #0000ff; font-size: 1.1rem;}
 
+        .team-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #3b4cca;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+
         @media (max-width: 450px) {
-            .grid { grid-template-columns: 1fr; gap: 5px; }
+            .grid-hunt { grid-template-columns: 1fr; gap: 5px; }
             .grid-header { display: none; }
-            .player-label { text-align: left; margin-top: 10px; color: #ffcb05; }
+            .player-label { text-align: left; margin-top: 10px; color: #ffcb05; font-size: 1rem; }
         }
     </style>
 </head>
@@ -167,7 +183,7 @@
     <div class="screen">
         <div class="header">
             <h1>🛡️ GUILDA RAGNAROK 🛡️</h1>
-            <p style="font-size: 0.7rem; color: #fff; text-shadow: none;">Sistema Central</p>
+            <p style="font-size: 0.7rem; color: #fff; text-shadow: none;">Sistema Balanceador</p>
         </div>
 
         <div class="tabs">
@@ -176,29 +192,36 @@
             <button class="tab-btn" id="btn-contrib" onclick="setMode('contrib')">CONTRIB. DA GUILDA</button>
         </div>
 
-        <!-- SEÇÃO DE HUNT (PKA) -->
+        <!-- SEÇÃO DE HUNT (BALANCEADOR 6 POKÉMONS) -->
         <div id="hunt-section">
-            <div class="grid">
-                <div class="grid-header">Time</div>
+            <div id="hunt-help" style="font-size: 0.8rem; text-align: center; margin-bottom: 15px; color: #ccc;">
+                Preencha 6 Pokémons e marque exatamente <strong>2 Lurers</strong>.
+            </div>
+            
+            <div class="grid-hunt" id="hunt-grid">
+                <div class="grid-header">Slot</div>
                 <div class="grid-header">Nome Pokémon</div>
                 <div class="grid-header">Dano</div>
+                <div class="grid-header">Lurer</div>
                 
-                <div class="player-label">Pokémon 1</div>
-                <div><input type="text" id="nome1" placeholder="Nome"></div>
-                <div><input type="number" id="dano1" placeholder="Dano"></div>
-
-                <div class="player-label">Pokémon 2</div>
-                <div><input type="text" id="nome2" placeholder="Nome"></div>
-                <div><input type="number" id="dano2" placeholder="Dano"></div>
-
-                <div class="player-label" id="label3">Pokémon 3</div>
-                <div id="div-nome3"><input type="text" id="nome3" placeholder="Nome"></div>
-                <div id="div-dano3"><input type="number" id="dano3" placeholder="Dano"></div>
+                <!-- GERANDO OS 6 CAMPOS -->
+                <script>
+                    for(let i = 1; i <= 6; i++) {
+                        document.write(`
+                            <div class="player-label">P${i}</div>
+                            <div><input type="text" id="nome${i}" placeholder="Nome ${i}"></div>
+                            <div><input type="number" id="dano${i}" placeholder="Dano"></div>
+                            <div style="text-align: center;">
+                                <input type="checkbox" id="lurer${i}" class="lurer-check" onchange="checkLurerLimit(this)">
+                            </div>
+                        `);
+                    }
+                </script>
             </div>
             
             <div class="actions">
                 <button class="btn btn-clear" onclick="limparDados()">ZERAR TUDO</button>
-                <button class="btn btn-calc" onclick="calcularHunt()">CALCULAR HUNT</button>
+                <button class="btn btn-calc" onclick="calcularHunt()">CALCULAR TIMES</button>
             </div>
         </div>
 
@@ -228,7 +251,7 @@
             </div>
         </div>
 
-        <!-- RESULTADOS (Comum para as duas seções) -->
+        <!-- RESULTADOS -->
         <div id="results" class="results-box"></div>
     </div>
 </div>
@@ -239,80 +262,174 @@
     function setMode(mode) {
         currentMode = mode;
         
-        // Atualiza os botões das abas
         document.getElementById('btn-3x3').classList.toggle('active', mode === '3x3');
         document.getElementById('btn-2x2').classList.toggle('active', mode === '2x2');
         document.getElementById('btn-contrib').classList.toggle('active', mode === 'contrib');
         
-        // Exibe a seção correta
         const isHunt = mode === '3x3' || mode === '2x2';
         document.getElementById('hunt-section').style.display = isHunt ? 'block' : 'none';
         document.getElementById('contrib-section').style.display = mode === 'contrib' ? 'block' : 'none';
         
-        // Lógica visual do 3º player se for hunt
         if (isHunt) {
-            const is3x3 = mode === '3x3';
-            document.getElementById('label3').style.display = is3x3 ? 'block' : 'none';
-            document.getElementById('div-nome3').style.display = is3x3 ? 'block' : 'none';
-            document.getElementById('div-dano3').style.display = is3x3 ? 'block' : 'none';
+            const helpText = document.getElementById('hunt-help');
+            if (mode === '3x3') {
+                helpText.innerHTML = "Preencha 6 Pokémons e marque exatamente <strong>2 Lurers</strong>.";
+            } else {
+                helpText.innerHTML = "Preencha 6 Pokémons e marque exatamente <strong>3 Lurers</strong>.";
+            }
+            
+            // Limpa as marcações de Lurer ao trocar de aba para evitar bugs
+            document.querySelectorAll('.lurer-check').forEach(cb => cb.checked = false);
         }
 
-        // Esconde os resultados e limpa dados ao trocar de aba (opcional)
         document.getElementById('results').style.display = 'none';
     }
 
-    function limparDados() {
-        // Limpa Hunt
-        document.getElementById('nome1').value = '';
-        document.getElementById('dano1').value = '';
-        document.getElementById('nome2').value = '';
-        document.getElementById('dano2').value = '';
-        document.getElementById('nome3').value = '';
-        document.getElementById('dano3').value = '';
+    function checkLurerLimit(checkbox) {
+        const maxLurers = currentMode === '3x3' ? 2 : 3;
+        const checkboxes = document.querySelectorAll('.lurer-check');
+        let count = 0;
         
-        // Limpa Contribuição
+        checkboxes.forEach(cb => { if (cb.checked) count++; });
+        
+        if (count > maxLurers) {
+            checkbox.checked = false;
+            alert(`Você só pode selecionar ${maxLurers} Lurers no Modo ${currentMode}.`);
+        }
+    }
+
+    function limparDados() {
+        for(let i = 1; i <= 6; i++) {
+            const nomeInput = document.getElementById(`nome${i}`);
+            const danoInput = document.getElementById(`dano${i}`);
+            const lurerCheck = document.getElementById(`lurer${i}`);
+            
+            if(nomeInput) nomeInput.value = '';
+            if(danoInput) danoInput.value = '';
+            if(lurerCheck) lurerCheck.checked = false;
+        }
+        
         document.getElementById('nick').value = '';
         document.getElementById('donate').value = '0';
         document.getElementById('dailys').value = '0';
-
-        // Esconde resultado
         document.getElementById('results').style.display = 'none';
     }
 
     function calcularHunt() {
-        const meta = 750;
-        const d1 = parseFloat(document.getElementById('dano1').value) || 0;
-        const d2 = parseFloat(document.getElementById('dano2').value) || 0;
-        const d3 = currentMode === '3x3' ? (parseFloat(document.getElementById('dano3').value) || 0) : 0;
+        const pokes = [];
+        let lurerCount = 0;
+        
+        for (let i = 1; i <= 6; i++) {
+            const nome = document.getElementById(`nome${i}`).value || `Pokémon ${i}`;
+            const dano = parseFloat(document.getElementById(`dano${i}`).value) || 0;
+            const isLurer = document.getElementById(`lurer${i}`).checked;
+            if (isLurer) lurerCount++;
+            pokes.push({ nome, dano, isLurer });
+        }
 
-        const total = d1 + d2 + d3;
-        const prey = total * 1.30;
-        const hoenn = total * 1.05;
-
+        const lurers = pokes.filter(p => p.isLurer);
+        const nonLurers = pokes.filter(p => !p.isLurer);
         const res = document.getElementById('results');
-        res.style.display = 'block';
+        let html = '';
 
-        let html = `<h3 style="margin-top: 0;">Dano Total Base: ${total.toFixed(1)}</h3>`;
+        if (currentMode === '3x3') {
+            if (lurerCount !== 2) {
+                alert('Erro: Selecione exatamente 2 Lurers para gerar os trios.');
+                return;
+            }
+            
+            // ALGORITMO BALANCEAMENTO 3x3
+            let bestDiff = Infinity;
+            let bestTeam1 = [], bestTeam2 = [];
+            
+            // Combinações de 2 para o trio 1 (6 possíveis combinações)
+            const combs = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]];
+            for (let c of combs) {
+                const t1_nl = [nonLurers[c[0]], nonLurers[c[1]]];
+                const t2_nl = nonLurers.filter((_, idx) => !c.includes(idx));
 
-        if (total >= meta) {
-            html += `<div class="result-line pass">✅ Pode caçar normal!</div>`;
-        } else {
-            html += `<div class="result-line fail">❌ Faltou ${(meta - total).toFixed(1)} de dano</div>`;
-        }
+                const dmg1 = lurers[0].dano + t1_nl[0].dano + t1_nl[1].dano;
+                const dmg2 = lurers[1].dano + t2_nl[0].dano + t2_nl[1].dano;
+                const diff = Math.abs(dmg1 - dmg2);
 
-        if (prey >= meta) {
-            html += `<div class="result-line pass">✅ Com 30% Prey: Aprovado! (Total: ${prey.toFixed(1)})</div>`;
-        } else {
-            html += `<div class="result-line fail">❌ Com 30% Prey: Faltou ${(meta - prey).toFixed(1)}</div>`;
-        }
+                if (diff < bestDiff) {
+                    bestDiff = diff;
+                    bestTeam1 = [lurers[0], ...t1_nl];
+                    bestTeam2 = [lurers[1], ...t2_nl];
+                }
+            }
 
-        if (hoenn >= meta) {
-            html += `<div class="result-line pass">✅ Com 5% Talento: Aprovado! (Total: ${hoenn.toFixed(1)})</div>`;
-        } else {
-            html += `<div class="result-line fail">❌ Com 5% Talento: Faltou ${(meta - hoenn).toFixed(1)}</div>`;
+            html += `<h3 style="text-align: center; margin-top: 0;">Times Balanceados (3x3)</h3>`;
+            html += renderTeam(bestTeam1, "Trio 1 (Líder: " + lurers[0].nome + ")");
+            html += renderTeam(bestTeam2, "Trio 2 (Líder: " + lurers[1].nome + ")");
+
+        } else if (currentMode === '2x2') {
+            if (lurerCount !== 3) {
+                alert('Erro: Selecione exatamente 3 Lurers para gerar as duplas.');
+                return;
+            }
+            
+            // ALGORITMO BALANCEAMENTO 2x2
+            let bestDiff = Infinity;
+            let bestTeams = [];
+            
+            // Permutações dos não-lurers (6 permutações)
+            const perms = [[0,1,2], [0,2,1], [1,0,2], [1,2,0], [2,0,1], [2,1,0]];
+            for (let p of perms) {
+                const dmg1 = lurers[0].dano + nonLurers[p[0]].dano;
+                const dmg2 = lurers[1].dano + nonLurers[p[1]].dano;
+                const dmg3 = lurers[2].dano + nonLurers[p[2]].dano;
+
+                const maxDmg = Math.max(dmg1, dmg2, dmg3);
+                const minDmg = Math.min(dmg1, dmg2, dmg3);
+                const diff = maxDmg - minDmg;
+
+                if (diff < bestDiff) {
+                    bestDiff = diff;
+                    bestTeams = [
+                        [lurers[0], nonLurers[p[0]]],
+                        [lurers[1], nonLurers[p[1]]],
+                        [lurers[2], nonLurers[p[2]]]
+                    ];
+                }
+            }
+
+            html += `<h3 style="text-align: center; margin-top: 0;">Times Balanceados (2x2)</h3>`;
+            html += renderTeam(bestTeams[0], "Dupla 1 (Líder: " + lurers[0].nome + ")");
+            html += renderTeam(bestTeams[1], "Dupla 2 (Líder: " + lurers[1].nome + ")");
+            html += renderTeam(bestTeams[2], "Dupla 3 (Líder: " + lurers[2].nome + ")");
         }
 
         res.innerHTML = html;
+        res.style.display = 'block';
+    }
+
+    function renderTeam(team, title) {
+        let dmgBase = team.reduce((sum, p) => sum + p.dano, 0);
+        let dmgPrey = dmgBase * 1.30;
+        const meta = 750;
+        
+        let html = `<div class="team-card">`;
+        html += `<h4 style="margin-top: 0; color: #e3350d; border-bottom: 2px solid #ccc; padding-bottom: 5px;">🏆 ${title}</h4>`;
+        html += `<ul style="list-style:none; padding-left:0; margin-top:5px; font-size: 0.9rem;">`;
+        team.forEach(p => {
+            html += `<li style="margin-bottom: 5px;">${p.isLurer ? '🎯 <strong>Lurer</strong>' : '⚔️ <strong>Ataque</strong>'} - ${p.nome}: <span style="color:#0000ff">${p.dano}</span></li>`;
+        });
+        html += `</ul>`;
+        html += `<div style="margin-top: 10px; font-size: 0.9rem;">`;
+        html += `<strong>Dano Total (Base):</strong> ${dmgBase.toFixed(1)} <br>`;
+        html += `<strong>Dano Total (+30% Prey):</strong> ${dmgPrey.toFixed(1)} <br><br>`;
+        
+        if (dmgBase >= meta) {
+            html += `<span class="pass">✅ Este time pode caçar sem Prey!</span>`;
+        } else if (dmgPrey >= meta) {
+            html += `<span class="pass">✅ Este time pode caçar com Prey!</span>`;
+        } else {
+            html += `<span class="fail">❌ Time muito fraco. Faltou ${(meta - dmgPrey).toFixed(1)} de dano (Mesmo com Prey).</span>`;
+        }
+        
+        html += `</div></div>`;
+        return html;
     }
 
     function calcularContrib() {
@@ -320,7 +437,6 @@
         const donate = parseFloat(document.getElementById('donate').value) || 0;
         const dailys = parseFloat(document.getElementById('dailys').value) || 0;
         
-        // Lógica tirada da planilha: 1 daily = 300
         const totalDaily = dailys * 300;
         const totalFinal = donate + totalDaily;
         
@@ -338,7 +454,6 @@
             const devendo = meta - totalFinal;
             html += `<div class="result-line fail" style="text-align: center; font-size: 1.1rem;">⚠️ Devendo: R$ -${devendo.toFixed(2)}</div>`;
         }
-
         res.innerHTML = html;
     }
 </script>
