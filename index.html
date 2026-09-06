@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guilda Ragnarok - Sistema Balanceador</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Adicionando a biblioteca html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -154,6 +156,7 @@
         }
         .btn-calc { background-color: #4caf50; color: white; }
         .btn-clear { background-color: #f44336; color: white; }
+        .btn-pdf { background-color: #cc0000; color: white; display: none; }
         .btn:active { transform: scale(0.95); }
         
         .results-box {
@@ -190,10 +193,10 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
         th, td {
-            padding: 8px;
+            padding: 8px 4px;
             border: 1px solid #1a1a1a;
             text-align: center;
         }
@@ -207,6 +210,10 @@
         }
         tr:nth-child(even) {
             background-color: rgba(230,230,230,0.9);
+        }
+        
+        tr {
+            page-break-inside: avoid;
         }
 
         @media (max-width: 450px) {
@@ -302,10 +309,11 @@
             <div class="actions">
                 <button class="btn btn-clear" onclick="limparDados()">ZERAR</button>
                 <button class="btn btn-calc" onclick="calcularContrib()">SIMULAR META</button>
+                <button class="btn btn-pdf" id="btn-pdf" onclick="gerarPDF()">BAIXAR PDF</button>
             </div>
         </div>
 
-        <!-- RESULTADOS -->
+        <!-- RESULTADOS (Area a ser convertida em PDF) -->
         <div id="results" class="results-box"></div>
     </div>
 </div>
@@ -335,6 +343,7 @@
         }
 
         document.getElementById('results').style.display = 'none';
+        document.getElementById('btn-pdf').style.display = 'none';
     }
 
     function checkLurerLimit(checkbox) {
@@ -366,6 +375,7 @@
         document.getElementById('dailys').value = '0';
         document.getElementById('json-file').value = '';
         document.getElementById('results').style.display = 'none';
+        document.getElementById('btn-pdf').style.display = 'none';
     }
 
     function calcularHunt() {
@@ -510,7 +520,9 @@
     }
 
     function renderJSONTable(data) {
-        const meta = parseInt(document.getElementById('guilda-selecionada').value);
+        const selectGuilda = document.getElementById('guilda-selecionada');
+        const meta = parseInt(selectGuilda.value);
+        const nomeGuilda = selectGuilda.options[selectGuilda.selectedIndex].text;
         const res = document.getElementById('results');
         
         let listaArray = [];
@@ -530,14 +542,16 @@
         if (!Array.isArray(listaArray) || listaArray.length === 0) {
             res.innerHTML = `<div class="fail" style="text-align:center;">Formato de arquivo inválido ou vazio.</div>`;
             res.style.display = 'block';
+            document.getElementById('btn-pdf').style.display = 'none';
             return;
         }
 
-        let html = `<h3 style="margin-top: 0; text-align: center;">Relatório da Guilda</h3>`;
-        html += `<div style="text-align: center; margin-bottom: 15px; font-size: 0.8rem; color: #1a1a1a;">Meta Exigida: ${meta}</div>`;
+        let html = `<div id="conteudo-pdf" style="background-color: #fff; padding: 20px; border-radius: 8px;">`;
+        html += `<h3 style="margin-top: 0; text-align: center; color: #1a1a1a; font-family: 'Press Start 2P', cursive; font-size: 0.8rem;">Relatório de Contribuição</h3>`;
+        html += `<div style="text-align: center; margin-bottom: 15px; font-size: 0.9rem; color: #1a1a1a;"><strong>${nomeGuilda}</strong></div>`;
         
         html += `<table>`;
-        html += `<tr><th>Nick</th><th>Dailys</th><th>Donate</th><th>Status</th></tr>`;
+        html += `<tr><th>Nick</th><th>Dailys</th><th>Donate</th><th>Total</th><th>Status</th></tr>`;
 
         let processados = 0;
 
@@ -555,6 +569,7 @@
             html += `<td><strong>${nick}</strong></td>`;
             html += `<td>${dailys}</td>`;
             html += `<td>${donate}</td>`;
+            html += `<td><strong>${totalFinal}</strong></td>`; 
             
             if (totalFinal >= meta) {
                 html += `<td class="pass">✅ OK</td>`;
@@ -565,9 +580,14 @@
         });
 
         html += `</table>`;
+        html += `<div style="margin-top: 15px; text-align: center; font-size: 0.7rem; color: #555;">Gerado automaticamente pelo Sistema da Guilda Ragnarok</div>`;
+        html += `</div>`; 
 
         if (processados === 0) {
             html = `<div class="fail" style="text-align:center;">Não foi possível ler as colunas de "Nick", "Dailys" e "Donate".</div>`;
+            document.getElementById('btn-pdf').style.display = 'none';
+        } else {
+            document.getElementById('btn-pdf').style.display = 'block'; 
         }
 
         res.innerHTML = html;
@@ -584,6 +604,7 @@
         
         const res = document.getElementById('results');
         res.style.display = 'block';
+        document.getElementById('btn-pdf').style.display = 'none';
 
         let html = `<h3 style="margin-top: 0; text-align: center;">Resumo da Contribuição</h3>`;
         html += `<div style="text-align: center; margin-bottom: 10px; font-size: 0.8rem;">Meta da Guilda: ${meta}</div>`;
@@ -598,6 +619,34 @@
             html += `<div class="result-line fail" style="text-align: center; font-size: 1.1rem;">⚠️ Devendo: R$ -${devendo.toFixed(2)}</div>`;
         }
         res.innerHTML = html;
+    }
+
+    function gerarPDF() {
+        const element = document.getElementById('conteudo-pdf');
+        
+        const opt = {
+            margin:       [10, 10, 10, 10],
+            filename:     'Relatorio_Guilda_Ragnarok.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        const btn = document.getElementById('btn-pdf');
+        const textOriginal = btn.innerHTML;
+        btn.innerHTML = "GERANDO...";
+        btn.style.opacity = "0.7";
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = textOriginal;
+            btn.style.opacity = "1";
+        }).catch(err => {
+            console.error("Erro ao gerar PDF:", err);
+            alert("Erro ao tentar gerar o PDF.");
+            btn.innerHTML = textOriginal;
+            btn.style.opacity = "1";
+        });
     }
 </script>
 </body>
