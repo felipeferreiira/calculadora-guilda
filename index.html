@@ -35,7 +35,13 @@
             border-radius: 10px;
             padding: 20px;
             color: #fff;
+            max-height: 80vh;
+            overflow-y: auto;
         }
+        .screen::-webkit-scrollbar { width: 8px; }
+        .screen::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 4px; }
+        .screen::-webkit-scrollbar-thumb { background: #ffcb05; border-radius: 4px; }
+
         .header {
             text-align: center;
             font-family: 'Press Start 2P', cursive;
@@ -104,6 +110,15 @@
             font-size: 0.9rem;
         }
         input::placeholder { color: #999; }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #444;
+            color: #fff;
+            border: 2px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
         .lurer-check {
             width: 25px;
             height: 25px;
@@ -150,6 +165,7 @@
             color: #1a1a1a;
             font-weight: bold;
             display: none;
+            overflow-x: auto;
         }
         .result-line {
             margin: 10px 0;
@@ -170,6 +186,29 @@
             color: #1a1a1a;
         }
 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #1a1a1a;
+            text-align: center;
+        }
+        th {
+            background-color: #3b4cca;
+            color: white;
+        }
+        tr {
+            background-color: rgba(255,255,255,0.9);
+            color: #1a1a1a;
+        }
+        tr:nth-child(even) {
+            background-color: rgba(230,230,230,0.9);
+        }
+
         @media (max-width: 450px) {
             .grid-hunt { grid-template-columns: 1fr; gap: 5px; }
             .grid-header { display: none; }
@@ -183,7 +222,7 @@
     <div class="screen">
         <div class="header">
             <h1>🛡️ GUILDA RAGNAROK 🛡️</h1>
-            <p style="font-size: 0.7rem; color: #fff; text-shadow: none;">Sistema Balanceador</p>
+            <p style="font-size: 0.7rem; color: #fff; text-shadow: none;">Sistema Central</p>
         </div>
 
         <div class="tabs">
@@ -204,7 +243,6 @@
                 <div class="grid-header">Dano</div>
                 <div class="grid-header">Lurer</div>
                 
-                <!-- GERANDO OS 6 CAMPOS -->
                 <script>
                     for(let i = 1; i <= 6; i++) {
                         document.write(`
@@ -238,12 +276,21 @@
                         <option value="5400">Ragnarok Academy (Meta: 5400)</option>
                     </select>
                 </div>
+
+                <div class="input-group" style="border: 2px dashed #ffcb05; padding: 15px; border-radius: 8px;">
+                    <label style="text-align: center;">📁 Ler Múltiplos (Arquivo JSON):</label>
+                    <p style="font-size: 0.7rem; color: #ccc; text-align: center; margin-bottom: 10px;">Anexe o arquivo JSON da lista de membros.</p>
+                    <input type="file" id="json-file" accept=".json">
+                </div>
+
+                <div style="text-align: center; color: #ffcb05; margin: 10px 0; font-weight: bold; font-family: 'Press Start 2P', cursive; font-size: 0.6rem;">OU CALCULO INDIVIDUAL</div>
+                
                 <div class="input-group">
-                    <label>👤 Nick (Opcional):</label>
+                    <label>👤 Nick:</label>
                     <input type="text" id="nick" placeholder="Seu Nick no jogo">
                 </div>
                 <div class="input-group">
-                    <label>💰 Donate em R$ (Opcional):</label>
+                    <label>💰 Donate em R$:</label>
                     <input type="number" id="donate" placeholder="Ex: 1000" value="0">
                 </div>
                 <div class="input-group">
@@ -253,7 +300,7 @@
             </div>
 
             <div class="actions">
-                <button class="btn btn-clear" onclick="limparDados()">ZERAR TUDO</button>
+                <button class="btn btn-clear" onclick="limparDados()">ZERAR</button>
                 <button class="btn btn-calc" onclick="calcularContrib()">SIMULAR META</button>
             </div>
         </div>
@@ -317,6 +364,7 @@
         document.getElementById('nick').value = '';
         document.getElementById('donate').value = '0';
         document.getElementById('dailys').value = '0';
+        document.getElementById('json-file').value = '';
         document.getElementById('results').style.display = 'none';
     }
 
@@ -442,6 +490,91 @@
     }
 
     function calcularContrib() {
+        const fileInput = document.getElementById('json-file');
+        
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    renderJSONTable(data);
+                } catch (error) {
+                    alert("Erro ao ler o arquivo. Certifique-se de que é um JSON válido.");
+                }
+            };
+            reader.readAsText(file);
+        } else {
+            calcularContribManual();
+        }
+    }
+
+    function renderJSONTable(data) {
+        const meta = parseInt(document.getElementById('guilda-selecionada').value);
+        const res = document.getElementById('results');
+        
+        let listaArray = [];
+        if (Array.isArray(data)) {
+            listaArray = data;
+        } else if (data.members && Array.isArray(data.members)) {
+            listaArray = data.members;
+        } else {
+            for (let key in data) {
+                if (Array.isArray(data[key])) {
+                    listaArray = data[key];
+                    break;
+                }
+            }
+        }
+
+        if (!Array.isArray(listaArray) || listaArray.length === 0) {
+            res.innerHTML = `<div class="fail" style="text-align:center;">Formato de arquivo inválido ou vazio.</div>`;
+            res.style.display = 'block';
+            return;
+        }
+
+        let html = `<h3 style="margin-top: 0; text-align: center;">Relatório da Guilda</h3>`;
+        html += `<div style="text-align: center; margin-bottom: 15px; font-size: 0.8rem; color: #1a1a1a;">Meta Exigida: ${meta}</div>`;
+        
+        html += `<table>`;
+        html += `<tr><th>Nick</th><th>Dailys</th><th>Donate</th><th>Status</th></tr>`;
+
+        let processados = 0;
+
+        listaArray.forEach(player => {
+            let nick = player['name'] || player['Nick'] || player['nick'] || player['Nome'] || "Desconhecido";
+            let dailys = parseFloat(player['dailiesCompleted'] || player['Dailys Feitas'] || player['dailys'] || player['Dailys']) || 0;
+            let donate = parseFloat(player['contribution'] || player['Donate em R$'] || player['donate'] || player['Donate']) || 0;
+
+            if (!nick || String(nick).trim() === "Desconhecido" || String(nick).includes("COMO PREENCHER")) return;
+
+            processados++;
+            const totalFinal = donate + (dailys * 300);
+            
+            html += `<tr>`;
+            html += `<td><strong>${nick}</strong></td>`;
+            html += `<td>${dailys}</td>`;
+            html += `<td>${donate}</td>`;
+            
+            if (totalFinal >= meta) {
+                html += `<td class="pass">✅ OK</td>`;
+            } else {
+                html += `<td class="fail">⚠️ -${meta - totalFinal}</td>`;
+            }
+            html += `</tr>`;
+        });
+
+        html += `</table>`;
+
+        if (processados === 0) {
+            html = `<div class="fail" style="text-align:center;">Não foi possível ler as colunas de "Nick", "Dailys" e "Donate".</div>`;
+        }
+
+        res.innerHTML = html;
+        res.style.display = 'block';
+    }
+
+    function calcularContribManual() {
         const meta = parseInt(document.getElementById('guilda-selecionada').value);
         const donate = parseFloat(document.getElementById('donate').value) || 0;
         const dailys = parseFloat(document.getElementById('dailys').value) || 0;
@@ -453,6 +586,7 @@
         res.style.display = 'block';
 
         let html = `<h3 style="margin-top: 0; text-align: center;">Resumo da Contribuição</h3>`;
+        html += `<div style="text-align: center; margin-bottom: 10px; font-size: 0.8rem;">Meta da Guilda: ${meta}</div>`;
         html += `<div class="result-line">📜 Valor por Dailys: <span class="highlight">${totalDaily}</span></div>`;
         html += `<div class="result-line">💰 Valor Donate: <span class="highlight">${donate}</span></div>`;
         html += `<div class="result-line" style="border-bottom: 3px solid #1a1a1a;">🏆 Total Acumulado: <span class="highlight">${totalFinal}</span></div>`;
