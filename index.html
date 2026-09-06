@@ -91,7 +91,7 @@
             padding-bottom: 5px;
             font-size: 0.8rem;
         }
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], select {
             width: 100%;
             padding: 10px;
             border: 2px solid #555;
@@ -192,7 +192,7 @@
             <button class="tab-btn" id="btn-contrib" onclick="setMode('contrib')">CONTRIB. DA GUILDA</button>
         </div>
 
-        <!-- SEÇÃO DE HUNT (BALANCEADOR 6 POKÉMONS) -->
+        <!-- SEÇÃO DE HUNT -->
         <div id="hunt-section">
             <div id="hunt-help" style="font-size: 0.8rem; text-align: center; margin-bottom: 15px; color: #ccc;">
                 Preencha 6 Pokémons e marque exatamente <strong>2 Lurers</strong>.
@@ -228,9 +228,16 @@
         <!-- SEÇÃO DE CONTRIBUIÇÃO -->
         <div id="contrib-section" style="display: none;">
             <div style="font-size: 0.8rem; text-align: center; margin-bottom: 15px; color: #ccc;">
-                Meta da Guilda: 5400 <br> (Cada Daily = 300)
+                1 Daily = 300k de contribuição
             </div>
             <div class="grid-contrib">
+                <div class="input-group">
+                    <label>🛡️ Escolha a Guilda:</label>
+                    <select id="guilda-selecionada">
+                        <option value="8400">Ragnarok Principal (Meta: 8400)</option>
+                        <option value="5400">Ragnarok Academy (Meta: 5400)</option>
+                    </select>
+                </div>
                 <div class="input-group">
                     <label>👤 Nick (Opcional):</label>
                     <input type="text" id="nick" placeholder="Seu Nick no jogo">
@@ -277,8 +284,6 @@
             } else {
                 helpText.innerHTML = "Preencha 6 Pokémons e marque exatamente <strong>3 Lurers</strong>.";
             }
-            
-            // Limpa as marcações de Lurer ao trocar de aba para evitar bugs
             document.querySelectorAll('.lurer-check').forEach(cb => cb.checked = false);
         }
 
@@ -338,11 +343,9 @@
                 return;
             }
             
-            // ALGORITMO BALANCEAMENTO 3x3
             let bestDiff = Infinity;
             let bestTeam1 = [], bestTeam2 = [];
             
-            // Combinações de 2 para o trio 1 (6 possíveis combinações)
             const combs = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]];
             for (let c of combs) {
                 const t1_nl = [nonLurers[c[0]], nonLurers[c[1]]];
@@ -369,11 +372,9 @@
                 return;
             }
             
-            // ALGORITMO BALANCEAMENTO 2x2
             let bestDiff = Infinity;
             let bestTeams = [];
             
-            // Permutações dos não-lurers (6 permutações)
             const perms = [[0,1,2], [0,2,1], [1,0,2], [1,2,0], [2,0,1], [2,1,0]];
             for (let p of perms) {
                 const dmg1 = lurers[0].dano + nonLurers[p[0]].dano;
@@ -441,7 +442,7 @@
     }
 
     function calcularContrib() {
-        const meta = 5400;
+        const meta = parseInt(document.getElementById('guilda-selecionada').value);
         const donate = parseFloat(document.getElementById('donate').value) || 0;
         const dailys = parseFloat(document.getElementById('dailys').value) || 0;
         
