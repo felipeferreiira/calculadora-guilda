@@ -3,261 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guilda Ragnarok - Sistema Balanceador</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Adicionando a biblioteca html2pdf -->
+    <title>Rotom Dex - Guilda Ragnarok</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bibliotecas para PDF e Imagem -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(180deg, #cc0000 0%, #cc0000 50%, #ffffff 50%, #ffffff 100%);
-            background-attachment: fixed;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
+        /* TEMA POKÉMON PC GAMER - DARK MODE */
+        :root {
+            --poke-red: #E3350D;
+            --poke-dark-red: #8B0000;
+            --poke-blue: #3164b4;
+            --poke-dark-blue: #1c3c6b;
+            --poke-yellow: #FFCC00;
+            --bg-dark: #0f172a; 
+            --panel-bg: #1e293b; 
+            --panel-inner: #0b1120; 
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --glass: rgba(30, 41, 59, 0.85);
         }
-        .pokedex {
-            background-color: #ff0000;
-            border: 10px solid #8b0000;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 650px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
-            padding: 20px;
-            box-sizing: border-box;
-            position: relative;
-        }
-        .screen {
-            background-color: #2b2b2b;
-            border: 8px solid #b3b3b3;
-            border-radius: 10px;
-            padding: 20px;
-            color: #fff;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .screen::-webkit-scrollbar { width: 8px; }
-        .screen::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 4px; }
-        .screen::-webkit-scrollbar-thumb { background: #ffcb05; border-radius: 4px; }
 
-        .header {
-            text-align: center;
-            font-family: 'Press Start 2P', cursive;
-            color: #ffcb05;
-            text-shadow: 2px 2px #3b4cca;
-            margin-bottom: 25px;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; 
+            padding: 20px; 
+            color: var(--text-main);
+            position: relative;
+            overflow-x: hidden;
         }
-        .header h1 { font-size: 1.2rem; line-height: 1.5; margin-bottom: 5px; }
-        .tabs {
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(227, 53, 13, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 100%, rgba(49, 100, 180, 0.15) 0%, transparent 50%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* POKÉMONS DECORATIVOS NO FUNDO */
+        .bg-pokemon {
+            position: fixed;
+            z-index: -1;
+            opacity: 0.8;
+            pointer-events: none;
+            filter: drop-shadow(0 0 15px rgba(0,0,0,0.5));
+        }
+        
+        @keyframes float-1 { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+        @keyframes float-2 { 0% { transform: translateY(0px) scaleX(-1) rotate(0deg); } 50% { transform: translateY(-15px) scaleX(-1) rotate(-2deg); } 100% { transform: translateY(0px) scaleX(-1) rotate(0deg); } }
+        @keyframes float-3 { 0% { transform: translateY(0px) scaleX(-1) rotate(0deg); } 50% { transform: translateY(-25px) scaleX(-1) rotate(3deg); } 100% { transform: translateY(0px) scaleX(-1) rotate(0deg); } }
+        @keyframes float-4 { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-18px) rotate(-2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+
+        .poke-1 { bottom: 5%; left: 3%; width: 220px; animation: float-1 6s ease-in-out infinite; }
+        .poke-2 { top: 5%; right: 3%; width: 180px; animation: float-2 7s ease-in-out infinite; animation-delay: -1s; }
+        .poke-3 { bottom: 5%; right: 5%; width: 120px; animation: float-3 5s ease-in-out infinite; animation-delay: -2s; }
+        .poke-4 { top: 8%; left: 5%; width: 150px; animation: float-4 8s ease-in-out infinite; animation-delay: -3s; }
+
+        /* CONTAINER PRINCIPAL */
+        .dex-container {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            width: 100%; 
+            max-width: 900px; 
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.1);
+            border: 2px solid var(--border-color);
+            display: flex; 
+            flex-direction: column;
+            max-height: 90vh;
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        /* HEADER ROTOM */
+        .dex-header {
+            background: linear-gradient(135deg, var(--poke-dark-red), var(--poke-red));
+            padding: 20px; 
+            text-align: center; 
+            color: white;
+            border-bottom: 4px solid #000;
+            position: relative; 
+            flex-shrink: 0;
             display: flex;
+            align-items: center;
             justify-content: center;
-            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .dex-lights {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .cam-lens {
+            width: 40px; height: 40px; border-radius: 50%; 
+            background: radial-gradient(circle at 30% 30%, #a8c0ff, #1c3c6b);
+            border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+        .mini-light {
+            width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000;
+        }
+        .l-red { background: #ff4d4d; box-shadow: 0 0 5px #ff4d4d; }
+        .l-yellow { background: #facc15; box-shadow: 0 0 5px #facc15; }
+        .l-green { background: #4ade80; box-shadow: 0 0 5px #4ade80; }
+
+        .dex-header h1 { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+            font-family: 'Press Start 2P', cursive; 
+            color: var(--poke-yellow);
+            -webkit-text-stroke: 1px #000;
+            margin: 0;
+            padding: 10px 0;
+        }
+
+        /* CONTEÚDO SCROLLÁVEL */
+        .dex-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex-grow: 1;
+            background: var(--panel-inner);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .dex-body::-webkit-scrollbar { width: 8px; }
+        .dex-body::-webkit-scrollbar-track { background: var(--bg-dark); }
+        .dex-body::-webkit-scrollbar-thumb { background: var(--poke-red); border-radius: 10px; }
+
+        /* ABAS (TABS) */
+        .tabs {
+            display: flex; 
             gap: 10px;
-            margin-bottom: 20px;
+            background: var(--panel-bg);
+            border-radius: 12px; 
+            padding: 8px; 
+            border: 1px solid var(--border-color);
         }
         .tab-btn {
-            background-color: #3b4cca;
-            color: white;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.7rem;
-            padding: 12px 15px;
-            border: 3px solid #1a1a1a;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s;
-            flex: 1;
-            min-width: 120px;
-        }
-        .tab-btn.active {
-            background-color: #ffcb05;
-            color: #3b4cca;
-            border-color: #c7a000;
-        }
-        
-        .grid-hunt {
-            display: grid;
-            grid-template-columns: auto 2.5fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-        .grid-contrib {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .grid-header {
-            font-weight: bold;
-            color: #ffcb05;
+            flex: 1; 
+            background: transparent; border: 2px solid transparent;
+            padding: 12px 10px; font-size: 0.85rem; font-weight: 700;
+            color: var(--text-muted); border-radius: 8px; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             text-align: center;
-            border-bottom: 2px solid #ffcb05;
-            padding-bottom: 5px;
-            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #555;
-            border-radius: 5px;
-            background-color: #444;
-            color: #fff;
-            font-weight: bold;
-            text-align: center;
-            box-sizing: border-box;
+        .tab-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
+        .tab-btn.active { 
+            background: var(--poke-blue); 
+            color: white; 
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); 
+        }
+
+        /* GRID PARA PC */
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+        @media (max-width: 850px) {
+            .bg-pokemon { display: none; } 
+            .split-layout { grid-template-columns: 1fr; }
+            .dex-header h1 { font-size: 1.2rem; }
+            .cam-lens { width: 30px; height: 30px; }
+            .dex-lights { left: 10px; gap: 5px; }
+            .mini-light { display: none; } 
+        }
+
+        /* CONTAINERS INTERNOS */
+        .section-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .section-title {
             font-size: 0.9rem;
-        }
-        input::placeholder { color: #999; }
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            background-color: #444;
-            color: #fff;
-            border: 2px solid #555;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .lurer-check {
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            accent-color: #ffcb05;
-        }
-        .player-label {
-            text-align: center;
-            font-weight: bold;
-            color: #fff;
-            font-size: 0.8rem;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #ffcb05;
-            font-weight: bold;
-            text-align: left;
-        }
-        .actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        .btn {
-            flex: 1;
-            padding: 15px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.7rem;
-            border: 3px solid #1a1a1a;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .btn-calc { background-color: #4caf50; color: white; }
-        .btn-clear { background-color: #f44336; color: white; }
-        .btn-pdf { background-color: #cc0000; color: white; display: none; }
-        .btn:active { transform: scale(0.95); }
-        
-        .results-box {
-            margin-top: 20px;
-            background-color: #98cb98;
-            border: 4px solid #1a1a1a;
-            border-radius: 8px;
-            padding: 15px;
-            color: #1a1a1a;
-            font-weight: bold;
-            display: none;
-            overflow-x: auto;
-        }
-        .result-line {
-            margin: 10px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px dashed #666;
-        }
-        .result-line:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
-        .pass { color: #006600; font-weight: bold; }
-        .fail { color: #cc0000; font-weight: bold; }
-        .highlight { color: #0000ff; font-size: 1.1rem;}
-
-        .team-card {
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px solid #3b4cca;
-            border-radius: 8px;
-            padding: 10px;
+            color: var(--poke-yellow);
+            text-transform: uppercase;
             margin-bottom: 15px;
-            color: #1a1a1a;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::after {
+            content: ''; flex: 1; height: 2px; background: var(--border-color);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.75rem;
+        /* INPUTS MODERNOS DARK */
+        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .input-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+        .input-control {
+            padding: 12px 15px; border: 2px solid var(--border-color); border-radius: 10px;
+            font-size: 0.9rem; font-weight: 500; background: var(--panel-inner);
+            transition: all 0.2s; width: 100%; color: var(--text-main); outline: none;
         }
-        th, td {
-            padding: 8px 4px;
-            border: 1px solid #1a1a1a;
-            text-align: center;
-        }
-        th {
-            background-color: #3b4cca;
-            color: white;
-        }
-        tr {
-            background-color: rgba(255,255,255,0.9);
-            color: #1a1a1a;
-        }
-        tr:nth-child(even) {
-            background-color: rgba(230,230,230,0.9);
-        }
+        .input-control:focus { border-color: var(--poke-yellow); box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1); }
         
-        tr {
-            page-break-inside: avoid;
+        .file-drop-area {
+            position: relative; 
+            z-index: 10;        
+            border: 2px dashed var(--poke-blue); border-radius: 12px; padding: 25px;
+            text-align: center; background: rgba(59, 130, 246, 0.05); cursor: pointer; transition: 0.2s;
+            margin-bottom: 15px;
+        }
+        .file-drop-area:hover { border-color: var(--poke-yellow); background: rgba(250, 204, 21, 0.05); }
+        .file-drop-area input[type="file"] { 
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; z-index: 11;
+        }
+        .file-label { color: var(--poke-blue); font-weight: 700; font-size: 0.9rem; display: block; margin-bottom: 5px; }
+
+        /* GRID DA HUNT */
+        .hunt-grid { display: flex; flex-direction: column; gap: 10px; }
+        .hunt-row {
+            display: grid; grid-template-columns: 2fr 1.5fr auto; gap: 10px; align-items: center;
+            background: var(--panel-inner); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
+        }
+        .lurer-container { display: flex; flex-direction: column; align-items: center; font-size: 0.6rem; font-weight: 600; color: #f87171; }
+        .lurer-check {
+            appearance: none; -webkit-appearance: none;
+            width: 24px; height: 24px; border: 2px solid var(--border-color); border-radius: 6px;
+            cursor: pointer; position: relative; transition: 0.2s; background: var(--panel-bg);
+        }
+        .lurer-check:checked { background: var(--poke-red); border-color: var(--poke-red); box-shadow: 0 0 10px var(--poke-red); }
+        .lurer-check:checked::after {
+            content: '✔'; position: absolute; color: white;
+            font-size: 16px; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
 
-        @media (max-width: 450px) {
-            .grid-hunt { grid-template-columns: 1fr; gap: 5px; }
-            .grid-header { display: none; }
-            .player-label { text-align: left; margin-top: 10px; color: #ffcb05; font-size: 1rem; }
+        /* BOTOES 3D DARK */
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            flex: 1; border: none; padding: 14px; font-size: 0.85rem; font-weight: 700;
+            border-radius: 10px; cursor: pointer; color: white; text-transform: uppercase;
+            transition: all 0.1s; position: relative; letter-spacing: 1px;
         }
+        .btn-calc { background: var(--poke-blue); box-shadow: 0 4px 0px var(--poke-dark-blue); }
+        .btn-calc:hover { filter: brightness(1.1); }
+        .btn-clear { background: transparent; border: 2px solid var(--text-muted); color: var(--text-muted); }
+        .btn-clear:hover { background: rgba(255,255,255,0.05); color: white; border-color: white; }
+        
+        .export-actions { display: none; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-img { background: #10b981; box-shadow: 0 4px 0px #047857; width: 100%; display: block; }
+        .btn-pdf { background: #dc2626; box-shadow: 0 4px 0px #7f1d1d; width: 100%; display: block; }
+        .btn-img:hover, .btn-pdf:hover { filter: brightness(1.1); }
+        
+        .btn:active { transform: translateY(4px); box-shadow: none !important; }
+
+        /* AREA DE RESULTADOS */
+        .results-container { margin-top: 20px; display: none; }
+        .team-card {
+            background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden;
+        }
+        .team-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--poke-blue);
+        }
+        .team-card h4 { color: var(--poke-yellow); font-size: 1.1rem; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid var(--border-color); }
+        .team-card ul { list-style: none; font-size: 0.9rem; margin-bottom: 15px; }
+        .team-card li { padding: 6px 0; display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); }
+        
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;}
+        .status-ok { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid #047857; }
+        .status-fail { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid #991b1b; }
+
+        /* TABELA DARK PARA PDF E VISUALIZAÇÃO */
+        .table-container { overflow-x: auto; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: center; }
+        th { background: #0f172a; color: var(--poke-yellow); padding: 15px 8px; font-weight: 700; border-bottom: 2px solid var(--border-color); text-transform: uppercase; letter-spacing: 1px;}
+        td { padding: 12px 8px; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-weight: 500;}
+        tr:last-child td { border-bottom: none; }
+        tr { page-break-inside: avoid; background-color: var(--panel-bg); transition: 0.2s; }
+        tr:nth-child(even) { background-color: rgba(255,255,255,0.02); }
+        tr:hover { background-color: rgba(59, 130, 246, 0.1); }
+        
+        .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;}
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); margin: 0 10px; }
+
+        #conteudo-pdf { background-color: var(--panel-inner); padding: 20px; border-radius: 8px; color: var(--text-main); }
+        #conteudo-pdf h3 { color: var(--poke-yellow); }
     </style>
 </head>
 <body onload="limparDados()">
 
-<div class="pokedex">
-    <div class="screen">
-        <div class="header">
-            <h1>🛡️ GUILDA RAGNAROK 🛡️</h1>
-            <p style="font-size: 0.7rem; color: #fff; text-shadow: none;">Sistema Central</p>
-        </div>
+<!-- Pokémons no fundo da tela com animações divertidas -->
+<img src="https://play.pokemonshowdown.com/sprites/ani/charizard.gif" class="bg-pokemon poke-1" alt="Charizard">
+<img src="https://play.pokemonshowdown.com/sprites/ani/gengar.gif" class="bg-pokemon poke-2" alt="Gengar">
+<img src="https://play.pokemonshowdown.com/sprites/ani/pikachu.gif" class="bg-pokemon poke-3" alt="Pikachu">
+<img src="https://play.pokemonshowdown.com/sprites/ani/dragonite.gif" class="bg-pokemon poke-4" alt="Dragonite">
 
+<div class="dex-container">
+    
+    <div class="dex-header">
+        <div class="dex-lights">
+            <div class="cam-lens"></div>
+            <div class="mini-light l-red"></div>
+            <div class="mini-light l-yellow"></div>
+            <div class="mini-light l-green"></div>
+        </div>
+        <div>
+            <h1>GUILDA RAGNAROK</h1>
+        </div>
+    </div>
+
+    <div class="dex-body">
+        
         <div class="tabs">
             <button class="tab-btn active" id="btn-3x3" onclick="setMode('3x3')">MODO 3x3</button>
             <button class="tab-btn" id="btn-2x2" onclick="setMode('2x2')">MODO 2x2</button>
-            <button class="tab-btn" id="btn-contrib" onclick="setMode('contrib')">CONTRIB. DA GUILDA</button>
+            <button class="tab-btn" id="btn-contrib" onclick="setMode('contrib')">CONTRIBUIÇÃO</button>
         </div>
 
         <!-- SEÇÃO DE HUNT -->
         <div id="hunt-section">
-            <div id="hunt-help" style="font-size: 0.8rem; text-align: center; margin-bottom: 15px; color: #ccc;">
-                Preencha 6 Pokémons e marque exatamente <strong>2 Lurers</strong>.
-            </div>
+            <div class="section-title">CONFIGURAR TIME DE CAÇA</div>
+            <p id="hunt-help" style="font-size: 0.8rem; margin-bottom: 15px; color: var(--text-muted);">
+                Preencha os 6 membros e marque <strong>2 Lurers</strong>.
+            </p>
             
-            <div class="grid-hunt" id="hunt-grid">
-                <div class="grid-header">Slot</div>
-                <div class="grid-header">Nome Pokémon</div>
-                <div class="grid-header">Dano</div>
-                <div class="grid-header">Lurer</div>
-                
+            <div class="hunt-grid" id="hunt-grid">
                 <script>
                     for(let i = 1; i <= 6; i++) {
                         document.write(`
-                            <div class="player-label">P${i}</div>
-                            <div><input type="text" id="nome${i}" placeholder="Nome ${i}"></div>
-                            <div><input type="number" id="dano${i}" placeholder="Dano"></div>
-                            <div style="text-align: center;">
-                                <input type="checkbox" id="lurer${i}" class="lurer-check" onchange="checkLurerLimit(this)">
+                            <div class="hunt-row">
+                                <input type="text" class="input-control" id="nome${i}" placeholder="P${i} Nickname">
+                                <input type="number" class="input-control" id="dano${i}" placeholder="Dano">
+                                <div class="lurer-container">
+                                    <input type="checkbox" id="lurer${i}" class="lurer-check" onchange="checkLurerLimit(this)">
+                                    <span>Lurer</span>
+                                </div>
                             </div>
                         `);
                     }
@@ -265,56 +370,72 @@
             </div>
             
             <div class="actions">
-                <button class="btn btn-clear" onclick="limparDados()">ZERAR TUDO</button>
-                <button class="btn btn-calc" onclick="calcularHunt()">CALCULAR TIMES</button>
+                <button class="btn btn-clear" onclick="limparDados()">Resetar</button>
+                <button class="btn btn-calc" onclick="calcularHunt()">Balancear Times</button>
             </div>
         </div>
 
         <!-- SEÇÃO DE CONTRIBUIÇÃO -->
         <div id="contrib-section" style="display: none;">
-            <div style="font-size: 0.8rem; text-align: center; margin-bottom: 15px; color: #ccc;">
-                1 Daily = 300k de contribuição
-            </div>
-            <div class="grid-contrib">
-                <div class="input-group">
-                    <label>🛡️ Escolha a Guilda:</label>
-                    <select id="guilda-selecionada">
-                        <option value="8400">Ragnarok Principal (Meta: 8400)</option>
-                        <option value="5400">Ragnarok Academy (Meta: 5400)</option>
-                    </select>
+            
+            <div class="split-layout">
+                <!-- Coluna Esquerda: Leitura Automática -->
+                <div class="section-panel">
+                    <div class="section-title">Análise de Planilha</div>
+                    
+                    <div class="input-group">
+                        <label>Selecionar Meta</label>
+                        <select id="guilda-selecionada" class="input-control">
+                            <option value="8400">Ragnarok Principal (8400)</option>
+                            <option value="5400">Ragnarok Academy (5400)</option>
+                        </select>
+                    </div>
+
+                    <div class="file-drop-area">
+                        <input type="file" id="json-file" accept=".json">
+                        <span class="file-label">📥 Upload de JSON</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted)">Arraste o arquivo ou clique</span>
+                    </div>
                 </div>
 
-                <div class="input-group" style="border: 2px dashed #ffcb05; padding: 15px; border-radius: 8px;">
-                    <label style="text-align: center;">📁 Ler Múltiplos (Arquivo JSON):</label>
-                    <p style="font-size: 0.7rem; color: #ccc; text-align: center; margin-bottom: 10px;">Anexe o arquivo JSON da lista de membros.</p>
-                    <input type="file" id="json-file" accept=".json">
-                </div>
+                <!-- Coluna Direita: Manual -->
+                <div class="section-panel">
+                    <div class="section-title">Cálculo Individual</div>
+                    
+                    <div class="input-group">
+                        <label>Nickname</label>
+                        <input type="text" id="nick" class="input-control" placeholder="Seu Nick no jogo">
+                    </div>
+                    
+                    <div style="display:flex; gap:10px;">
+                        <div class="input-group" style="flex:1;">
+                            <label>💰 Donate (R$)</label>
+                            <input type="number" id="donate" class="input-control" placeholder="0" value="0">
+                        </div>
+                        <div class="input-group" style="flex:1;">
+                            <label>📜 Dailys</label>
+                            <input type="number" id="dailys" class="input-control" placeholder="0" value="0">
+                        </div>
+                    </div>
 
-                <div style="text-align: center; color: #ffcb05; margin: 10px 0; font-weight: bold; font-family: 'Press Start 2P', cursive; font-size: 0.6rem;">OU CALCULO INDIVIDUAL</div>
-                
-                <div class="input-group">
-                    <label>👤 Nick:</label>
-                    <input type="text" id="nick" placeholder="Seu Nick no jogo">
-                </div>
-                <div class="input-group">
-                    <label>💰 Donate em R$:</label>
-                    <input type="number" id="donate" placeholder="Ex: 1000" value="0">
-                </div>
-                <div class="input-group">
-                    <label>📜 Dailys Feitas:</label>
-                    <input type="number" id="dailys" placeholder="Quantidade de Dailys" value="0">
+                    <div class="actions" style="margin-top: 20px;">
+                        <button class="btn btn-clear" onclick="limparDados()">Limpar</button>
+                        <button class="btn btn-calc" onclick="calcularContrib()">Simular</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="actions">
-                <button class="btn btn-clear" onclick="limparDados()">ZERAR</button>
-                <button class="btn btn-calc" onclick="calcularContrib()">SIMULAR META</button>
-                <button class="btn btn-pdf" id="btn-pdf" onclick="gerarPDF()">BAIXAR PDF</button>
-            </div>
         </div>
 
-        <!-- RESULTADOS (Area a ser convertida em PDF) -->
-        <div id="results" class="results-box"></div>
+        <!-- AREA DE RESULTADOS GERAIS -->
+        <div id="results" class="results-container"></div>
+        
+        <!-- BOTOES DE EXPORTAÇÃO -->
+        <div class="export-actions" id="export-actions">
+            <button class="btn btn-pdf" onclick="gerarPDF()">📄 BAIXAR COMO PDF</button>
+            <button class="btn btn-img" onclick="gerarImagem()">📸 BAIXAR COMO IMAGEM</button>
+        </div>
+
     </div>
 </div>
 
@@ -335,15 +456,15 @@
         if (isHunt) {
             const helpText = document.getElementById('hunt-help');
             if (mode === '3x3') {
-                helpText.innerHTML = "Preencha 6 Pokémons e marque exatamente <strong>2 Lurers</strong>.";
+                helpText.innerHTML = "Preencha os 6 membros e marque exatamente <strong>2 Lurers</strong>.";
             } else {
-                helpText.innerHTML = "Preencha 6 Pokémons e marque exatamente <strong>3 Lurers</strong>.";
+                helpText.innerHTML = "Preencha os 6 membros e marque exatamente <strong>3 Lurers</strong>.";
             }
             document.querySelectorAll('.lurer-check').forEach(cb => cb.checked = false);
         }
 
         document.getElementById('results').style.display = 'none';
-        document.getElementById('btn-pdf').style.display = 'none';
+        document.getElementById('export-actions').style.display = 'none';
     }
 
     function checkLurerLimit(checkbox) {
@@ -355,7 +476,7 @@
         
         if (count > maxLurers) {
             checkbox.checked = false;
-            alert(`Você só pode selecionar ${maxLurers} Lurers no Modo ${currentMode}.`);
+            alert(`Atenção! Você só pode selecionar ${maxLurers} Lurers no Modo ${currentMode}.`);
         }
     }
 
@@ -375,7 +496,7 @@
         document.getElementById('dailys').value = '0';
         document.getElementById('json-file').value = '';
         document.getElementById('results').style.display = 'none';
-        document.getElementById('btn-pdf').style.display = 'none';
+        document.getElementById('export-actions').style.display = 'none';
     }
 
     function calcularHunt() {
@@ -383,7 +504,7 @@
         let lurerCount = 0;
         
         for (let i = 1; i <= 6; i++) {
-            const nome = document.getElementById(`nome${i}`).value || `Pokémon ${i}`;
+            const nome = document.getElementById(`nome${i}`).value || `Slot ${i}`;
             const dano = parseFloat(document.getElementById(`dano${i}`).value) || 0;
             const isLurer = document.getElementById(`lurer${i}`).checked;
             if (isLurer) lurerCount++;
@@ -396,13 +517,9 @@
         let html = '';
 
         if (currentMode === '3x3') {
-            if (lurerCount !== 2) {
-                alert('Erro: Selecione exatamente 2 Lurers para gerar os trios.');
-                return;
-            }
+            if (lurerCount !== 2) { alert('Selecione exatamente 2 Lurers para gerar os trios.'); return; }
             
-            let bestDiff = Infinity;
-            let bestTeam1 = [], bestTeam2 = [];
+            let bestDiff = Infinity; let bestTeam1 = [], bestTeam2 = [];
             
             const combs = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]];
             for (let c of combs) {
@@ -420,18 +537,16 @@
                 }
             }
 
-            html += `<h3 style="text-align: center; margin-top: 0;">Times Balanceados (3x3)</h3>`;
+            html += `<h3 class="section-title">RESULTADO: TIMES (3x3)</h3>`;
+            html += `<div class="split-layout">`;
             html += renderTeam(bestTeam1, "Trio 1 (Líder: " + lurers[0].nome + ")", '3x3');
             html += renderTeam(bestTeam2, "Trio 2 (Líder: " + lurers[1].nome + ")", '3x3');
+            html += `</div>`;
 
         } else if (currentMode === '2x2') {
-            if (lurerCount !== 3) {
-                alert('Erro: Selecione exatamente 3 Lurers para gerar as duplas.');
-                return;
-            }
+            if (lurerCount !== 3) { alert('Selecione exatamente 3 Lurers para gerar as duplas.'); return; }
             
-            let bestDiff = Infinity;
-            let bestTeams = [];
+            let bestDiff = Infinity; let bestTeams = [];
             
             const perms = [[0,1,2], [0,2,1], [1,0,2], [1,2,0], [2,0,1], [2,1,0]];
             for (let p of perms) {
@@ -453,7 +568,7 @@
                 }
             }
 
-            html += `<h3 style="text-align: center; margin-top: 0;">Times Balanceados (2x2)</h3>`;
+            html += `<h3 class="section-title">RESULTADO: TIMES (2x2)</h3>`;
             html += renderTeam(bestTeams[0], "Dupla 1 (Líder: " + lurers[0].nome + ")", '2x2');
             html += renderTeam(bestTeams[1], "Dupla 2 (Líder: " + lurers[1].nome + ")", '2x2');
             html += renderTeam(bestTeams[2], "Dupla 3 (Líder: " + lurers[2].nome + ")", '2x2');
@@ -469,34 +584,53 @@
         const meta = 750;
         
         let html = `<div class="team-card">`;
-        html += `<h4 style="margin-top: 0; color: #e3350d; border-bottom: 2px solid #ccc; padding-bottom: 5px;">🏆 ${title}</h4>`;
-        html += `<ul style="list-style:none; padding-left:0; margin-top:5px; font-size: 0.9rem;">`;
+        html += `<h4>${title}</h4>`;
+        html += `<ul>`;
         team.forEach(p => {
-            html += `<li style="margin-bottom: 5px;">${p.isLurer ? '🎯 <strong>Lurer</strong>' : '⚔️ <strong>Ataque</strong>'} - ${p.nome}: <span style="color:#0000ff">${p.dano}</span></li>`;
+            html += `<li><span>${p.isLurer ? '🎯 <b style="color:#ef4444">Lurer</b>' : '⚔️ <b style="color:var(--poke-blue)">Ataque</b>'} - ${p.nome}</span> <span>${p.dano}</span></li>`;
         });
         html += `</ul>`;
-        html += `<div style="margin-top: 10px; font-size: 0.9rem;">`;
-        html += `<strong>Dano Total (Base):</strong> ${dmgBase.toFixed(1)} <br>`;
-        html += `<strong>Dano Total (+30% Prey):</strong> ${dmgPrey.toFixed(1)} <br><br>`;
+        html += `<div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom:15px; border: 1px solid var(--border-color);">`;
+        html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><strong>Dano Base:</strong> <span>${dmgBase.toFixed(1)}</span></div>`;
+        html += `<div style="display:flex; justify-content:space-between; color: var(--poke-yellow);"><strong>Com Prey (+30%):</strong> <span>${dmgPrey.toFixed(1)}</span></div>`;
+        html += `</div>`;
         
         if (mode === '3x3') {
-            if (dmgBase >= meta) {
-                html += `<span class="pass">✅ Este time pode caçar sem Prey!</span>`;
-            } else if (dmgPrey >= meta) {
-                html += `<span class="pass">✅ Este time pode caçar com Prey!</span>`;
-            } else {
-                html += `<span class="fail">❌ Time muito fraco. Faltou ${(meta - dmgPrey).toFixed(1)} de dano (Mesmo com Prey).</span>`;
-            }
+            if (dmgBase >= meta) html += `<div class="status-badge status-ok" style="width:100%; text-align:center;">✅ Liberada sem Prey!</div>`;
+            else if (dmgPrey >= meta) html += `<div class="status-badge status-ok" style="width:100%; text-align:center;">✅ Liberada com Prey!</div>`;
+            else html += `<div class="status-badge status-fail" style="width:100%; text-align:center;">❌ Faltou ${(meta - dmgPrey).toFixed(1)} de dano.</div>`;
         } else if (mode === '2x2') {
-             if (dmgBase >= meta || dmgPrey >= meta) {
-                html += `<span class="pass">🎉 Parabéns você tem dano para caçar 2x2!</span>`;
-             } else {
-                html += `<span class="fail">❌ Time muito fraco. Faltou ${(meta - dmgPrey).toFixed(1)} de dano (Mesmo com Prey).</span>`;
-             }
+             if (dmgBase >= meta || dmgPrey >= meta) html += `<div class="status-badge status-ok" style="width:100%; text-align:center;">🎉 Dano liberado para 2x2!</div>`;
+             else html += `<div class="status-badge status-fail" style="width:100%; text-align:center;">❌ Faltou ${(meta - dmgPrey).toFixed(1)} de dano.</div>`;
         }
         
-        html += `</div></div>`;
+        html += `</div>`;
         return html;
+    }
+
+    document.getElementById('json-file').addEventListener('change', function(event) {
+        if(this.files.length > 0) {
+            calcularContrib();
+        }
+    });
+
+    function calcularSemanaAtual(dateStr) {
+        let baseDate = dateStr ? new Date(dateStr.replace(' ', 'T')) : new Date();
+        if (isNaN(baseDate)) baseDate = new Date();
+
+        let day = baseDate.getDay(); 
+        let diffToMonday = day === 0 ? 6 : day - 1; 
+        
+        let currentMonday = new Date(baseDate);
+        currentMonday.setDate(baseDate.getDate() - diffToMonday);
+        
+        let currentSunday = new Date(currentMonday);
+        currentSunday.setDate(currentMonday.getDate() + 6);
+
+        return {
+            inicio: currentMonday.toLocaleDateString('pt-BR'),
+            fim: currentSunday.toLocaleDateString('pt-BR')
+        };
     }
 
     function calcularContrib() {
@@ -522,35 +656,38 @@
     function renderJSONTable(data) {
         const selectGuilda = document.getElementById('guilda-selecionada');
         const meta = parseInt(selectGuilda.value);
-        const nomeGuilda = selectGuilda.options[selectGuilda.selectedIndex].text;
+        const nomeGuilda = selectGuilda.options[selectGuilda.selectedIndex].text.replace(/[^a-zA-Z0-ões ]/g, "").trim();
         const res = document.getElementById('results');
         
         let listaArray = [];
-        if (Array.isArray(data)) {
-            listaArray = data;
-        } else if (data.members && Array.isArray(data.members)) {
-            listaArray = data.members;
-        } else {
+        if (Array.isArray(data)) listaArray = data;
+        else if (data.members && Array.isArray(data.members)) listaArray = data.members;
+        else {
             for (let key in data) {
-                if (Array.isArray(data[key])) {
-                    listaArray = data[key];
-                    break;
-                }
+                if (Array.isArray(data[key])) { listaArray = data[key]; break; }
             }
         }
 
         if (!Array.isArray(listaArray) || listaArray.length === 0) {
-            res.innerHTML = `<div class="fail" style="text-align:center;">Formato de arquivo inválido ou vazio.</div>`;
+            res.innerHTML = `<div class="team-card status-fail" style="text-align:center;">Formato de arquivo inválido.</div>`;
             res.style.display = 'block';
-            document.getElementById('btn-pdf').style.display = 'none';
+            document.getElementById('export-actions').style.display = 'none';
             return;
         }
 
-        let html = `<div id="conteudo-pdf" style="background-color: #fff; padding: 20px; border-radius: 8px;">`;
-        html += `<h3 style="margin-top: 0; text-align: center; color: #1a1a1a; font-family: 'Press Start 2P', cursive; font-size: 0.8rem;">Relatório de Contribuição</h3>`;
-        html += `<div style="text-align: center; margin-bottom: 15px; font-size: 0.9rem; color: #1a1a1a;"><strong>${nomeGuilda}</strong></div>`;
+        let datasSemana = calcularSemanaAtual(data.exportedAt);
+
+        let html = `<div id="conteudo-pdf" style="background-color: var(--panel-inner); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%;">`;
         
-        html += `<table>`;
+        html += `<div style="text-align: center; margin-bottom: 25px;">`;
+        html += `<h3 style="margin-top: 0; color: var(--poke-yellow); font-family: 'Press Start 2P', cursive; font-size: 1rem; margin-bottom:10px;">RELATÓRIO OFICIAL</h3>`;
+        html += `<div style="font-size: 1.1rem; color: var(--text-main); font-weight:700; text-transform:uppercase; letter-spacing:1px;">⚔️ ${nomeGuilda} ⚔️</div>`;
+        html += `<div style="display:inline-block; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 6px 15px;">`;
+        html += `🗓️ Semanal: <strong>${datasSemana.inicio}</strong> a <strong>${datasSemana.fim}</strong>`;
+        html += `</div>`;
+        html += `</div>`;
+
+        html += `<div class="table-container"><table>`;
         html += `<tr><th>Nick</th><th>Dailys</th><th>Donate</th><th>Total</th><th>Status</th></tr>`;
 
         let processados = 0;
@@ -568,26 +705,26 @@
             html += `<tr>`;
             html += `<td><strong>${nick}</strong></td>`;
             html += `<td>${dailys}</td>`;
-            html += `<td>${donate}</td>`;
-            html += `<td><strong>${totalFinal}</strong></td>`; 
+            html += `<td>R$ ${donate.toLocaleString('pt-BR')}</td>`;
+            html += `<td style="color:var(--poke-yellow); font-weight:700;">${totalFinal.toLocaleString('pt-BR')}</td>`; 
             
             if (totalFinal >= meta) {
-                html += `<td class="pass">✅ OK</td>`;
+                html += `<td><span class="status-badge status-ok">✅ OK</span></td>`;
             } else {
-                html += `<td class="fail">⚠️ -${meta - totalFinal}</td>`;
+                html += `<td><span class="status-badge status-fail">⚠️ -${(meta - totalFinal).toLocaleString('pt-BR')}</span></td>`;
             }
             html += `</tr>`;
         });
 
-        html += `</table>`;
-        html += `<div style="margin-top: 15px; text-align: center; font-size: 0.7rem; color: #555;">Gerado automaticamente pelo Sistema da Guilda Ragnarok</div>`;
+        html += `</table></div>`;
+        html += `<div style="margin-top: 20px; text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; letter-spacing: 1px;">SISTEMA GERADO POR ROTOM DEX</div>`;
         html += `</div>`; 
 
         if (processados === 0) {
-            html = `<div class="fail" style="text-align:center;">Não foi possível ler as colunas de "Nick", "Dailys" e "Donate".</div>`;
-            document.getElementById('btn-pdf').style.display = 'none';
+            html = `<div class="team-card status-fail" style="text-align:center;">Não foi possível ler as colunas.</div>`;
+            document.getElementById('export-actions').style.display = 'none';
         } else {
-            document.getElementById('btn-pdf').style.display = 'block'; 
+            document.getElementById('export-actions').style.display = 'flex'; 
         }
 
         res.innerHTML = html;
@@ -604,48 +741,92 @@
         
         const res = document.getElementById('results');
         res.style.display = 'block';
-        document.getElementById('btn-pdf').style.display = 'none';
+        document.getElementById('export-actions').style.display = 'none';
 
-        let html = `<h3 style="margin-top: 0; text-align: center;">Resumo da Contribuição</h3>`;
-        html += `<div style="text-align: center; margin-bottom: 10px; font-size: 0.8rem;">Meta da Guilda: ${meta}</div>`;
-        html += `<div class="result-line">📜 Valor por Dailys: <span class="highlight">${totalDaily}</span></div>`;
-        html += `<div class="result-line">💰 Valor Donate: <span class="highlight">${donate}</span></div>`;
-        html += `<div class="result-line" style="border-bottom: 3px solid #1a1a1a;">🏆 Total Acumulado: <span class="highlight">${totalFinal}</span></div>`;
+        let html = `<div class="team-card" style="text-align:center;">`;
+        html += `<h4 style="color: var(--poke-yellow); text-transform: uppercase;">Resumo Individual</h4>`;
+        html += `<div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">Meta Exigida: ${meta}</div>`;
+        
+        html += `<ul style="text-align:left; max-width: 250px; margin: 0 auto 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">`;
+        html += `<li><span>📜 Dailys:</span> <span>${totalDaily}</span></li>`;
+        html += `<li><span>💰 Donate:</span> <span>${donate}</span></li>`;
+        html += `<li style="font-weight:700; border-top: 2px solid var(--border-color); padding-top: 10px; margin-top:10px; color: var(--poke-yellow);"><span>🏆 TOTAL:</span> <span>${totalFinal}</span></li>`;
+        html += `</ul>`;
 
         if (totalFinal >= meta) {
-            html += `<div class="result-line pass" style="text-align: center; font-size: 1.2rem;">OK ✅<br><span style="font-size:0.8rem">Meta batida!</span></div>`;
+            html += `<div class="status-badge status-ok" style="font-size: 1.1rem; padding: 10px 20px; width:100%;">✅ Meta atingida!</div>`;
         } else {
-            const devendo = meta - totalFinal;
-            html += `<div class="result-line fail" style="text-align: center; font-size: 1.1rem;">⚠️ Devendo: R$ -${devendo.toFixed(2)}</div>`;
+            html += `<div class="status-badge status-fail" style="font-size: 1.1rem; padding: 10px 20px; width:100%;">⚠️ Devendo: R$ -${meta - totalFinal}</div>`;
         }
+        html += `</div>`;
         res.innerHTML = html;
+    }
+
+    function gerarImagem() {
+        const element = document.getElementById('conteudo-pdf');
+        const tableContainer = element.querySelector('.table-container');
+        if(tableContainer) tableContainer.style.overflowX = 'visible';
+
+        const btn = document.querySelector('.btn-img');
+        const textOriginal = btn.innerHTML;
+        btn.innerHTML = "📸 GERANDO...";
+        btn.style.opacity = "0.7";
+
+        element.style.padding = "40px";
+
+        html2canvas(element, { 
+            scale: 2, 
+            useCORS: true, 
+            backgroundColor: '#0b1120'
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Relatorio_Guilda_Ragnarok.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            element.style.padding = "30px";
+            btn.innerHTML = textOriginal;
+            btn.style.opacity = "1";
+            if(tableContainer) tableContainer.style.overflowX = 'auto'; 
+        }).catch(err => {
+            console.error("Erro ao gerar Imagem:", err);
+            alert("Erro ao tentar gerar a imagem.");
+            element.style.padding = "30px";
+            btn.innerHTML = textOriginal;
+            btn.style.opacity = "1";
+            if(tableContainer) tableContainer.style.overflowX = 'auto';
+        });
     }
 
     function gerarPDF() {
         const element = document.getElementById('conteudo-pdf');
-        
+        const tableContainer = element.querySelector('.table-container');
+        if(tableContainer) tableContainer.style.overflowX = 'visible';
+
         const opt = {
             margin:       [10, 10, 10, 10],
             filename:     'Relatorio_Guilda_Ragnarok.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0b1120' },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
-        const btn = document.getElementById('btn-pdf');
+        const btn = document.querySelector('.btn-pdf');
         const textOriginal = btn.innerHTML;
-        btn.innerHTML = "GERANDO...";
+        btn.innerHTML = "📄 GERANDO...";
         btn.style.opacity = "0.7";
 
         html2pdf().set(opt).from(element).save().then(() => {
             btn.innerHTML = textOriginal;
             btn.style.opacity = "1";
+            if(tableContainer) tableContainer.style.overflowX = 'auto'; 
         }).catch(err => {
             console.error("Erro ao gerar PDF:", err);
             alert("Erro ao tentar gerar o PDF.");
             btn.innerHTML = textOriginal;
             btn.style.opacity = "1";
+            if(tableContainer) tableContainer.style.overflowX = 'auto';
         });
     }
 </script>
